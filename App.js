@@ -6,10 +6,10 @@ import Deck from './src/Deck';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const renderCard = (itemData) => {
+const renderCard = (itemData, side) => {
   return (
     <View style={styles.cardContainer}>
-      <Text style={styles.cartText}>{itemData.term}</Text>
+      <Text style={styles.cartText}>{side === "FRONT" ? itemData.term : itemData.definition}</Text>
     </View>
   )
 }
@@ -17,7 +17,9 @@ const renderCard = (itemData) => {
 export default function App() {
   return (
     <View style={styles.container}>
-      <Deck data={WORDS_GROUP} renderCard={renderCard} renderEmptyList={null} onSwipeLeft={null} onSwipeRight={null}/>
+      <View style={styles.cardWrap}>
+        <Deck data={WORDS_GROUP} renderCard={renderCard} renderEmptyList={null} onSwipeLeft={null} onSwipeRight={null}/>
+      </View>
     </View>
   );
 }
@@ -29,16 +31,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardContainer: {
+  cardWrap: {
     width: SCREEN_WIDTH-40,
     height: SCREEN_HEIGHT/3,
+  },
+  cardContainer: {
+    flex: 1,
     backgroundColor: '#263859',
     borderRadius: 20,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 30,
   },
   cartText: {
     color: '#dadada',
     fontSize: 20,
+    textAlign: 'center'
   }
 })

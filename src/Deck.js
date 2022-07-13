@@ -1,13 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions } from 'react-native';
+import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet } from 'react-native';
 
 const LEFT_SWIPE = 'Left';
 const RIGHT_SWIPE = 'Right';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
+const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
     
     const position = useRef(new Animated.Value(0)).current;
+    const rotation = useRef(new Animated.Value(0)).current;
     const [currIndex, setCurrIndex] = useState(0);
 
     const onSwipe = (direction) => {
@@ -53,11 +55,21 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
 
     return (
         data.length > currIndex ? 
-            <Animated.View style={{transform: [{translateX: position}]}} {...panResponder.panHandlers}>
-                <View>
-                     {renderCard(data[currIndex])}
-                </View>
+            <Animated.View style={[styles.cardContainer, {transform: [{translateX: position}]}]} {...panResponder.panHandlers}>
+                <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
+                <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "BACK")}</Animated.View>
             </Animated.View> : <Text>No more cards</Text>
 )};
+
+const styles = StyleSheet.create({
+    cardContainer: {
+      position: "absolute",
+      flex: 1,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+    } 
+  })
 
 export default Deck;
