@@ -1,25 +1,34 @@
 import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { StyleSheet, Text, View, Dimensions } from 'react-native';
 import { WORDS_GROUP } from './src/data';
 import Deck from './src/Deck';
+import { SquareIcon } from './src/svg';
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const renderCard = (itemData, side) => {
-  return (
-    <View style={styles.cardContainer}>
-      <Text style={styles.cartText}>{side === "FRONT" ? itemData.term : itemData.definition}</Text>
-    </View>
-  )
-}
+const NEW = 'rgba(116,130,143,.6)';
+const KNOWN = 'rgba(65,146,75,.6)';
 
 export default function App() {
+
+  const onSwipeLeft = () => {
+    setProgress(prev => [...prev, NEW])
+  }
+
+  const onSwipeRight = () => {
+    setProgress(prev => [...prev, KNOWN])
+  }
+
+  const [progress, setProgress] = useState([]);
+
+  
+
   return (
     <View style={styles.container}>
-      <View style={styles.cardWrap}>
-        <Deck data={WORDS_GROUP} renderCard={renderCard} renderEmptyList={null} onSwipeLeft={null} onSwipeRight={null}/>
-      </View>
+      <View style={styles.progressSection}>{progress?.map(item => <Text><SquareIcon color={item} />{' '}</Text>)}</View>
+      <Deck data={WORDS_GROUP} renderEmptyList={null} onSwipeLeft={onSwipeLeft} onSwipeRight={onSwipeRight} />
     </View>
   );
 }
@@ -30,22 +39,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#d9d9f3',
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 40,
   },
-  cardWrap: {
-    width: SCREEN_WIDTH-40,
-    height: SCREEN_HEIGHT/3,
+  counterText: {
+    color: "#17223b",
+    fontSize: 26,
+    textAlign: 'center',
+    flexGrow: 1,
   },
-  cardContainer: {
-    flex: 1,
-    backgroundColor: '#263859',
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 30,
-  },
-  cartText: {
-    color: '#dadada',
-    fontSize: 20,
-    textAlign: 'center'
+  progressSection: {
+    flexGrow: 1,
+    flexDirection: 'row',
+    paddingTop: 20,
   }
 })

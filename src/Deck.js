@@ -1,12 +1,13 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet } from 'react-native';
+import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { IconCross, IconTick } from './svg';
 
 const LEFT_SWIPE = 'Left';
 const RIGHT_SWIPE = 'Right';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
+const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(50)).current;
     const sideOpacity = useRef(new Animated.Value(1)).current;
@@ -14,6 +15,14 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
 
     const [currIndex, setCurrIndex] = useState(0);
 
+    const renderCard = (itemData, side) => {
+        return (
+          <View>
+            <Text style={styles.cartText}>{side === "FRONT" ? itemData.term : itemData.definition}</Text>
+          </View>
+        )
+      }
+    
     const cardRotationA = rotation.interpolate({
         inputRange: [50, 100],
         outputRange: ["0deg", "180deg"],
@@ -60,9 +69,12 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
         let x = 0;
         if (direction === LEFT_SWIPE) {
           x = -SCREEN_WIDTH*2;
+          onSwipeLeft();
         } else if (direction === RIGHT_SWIPE) {
           x = SCREEN_WIDTH*2;
+          onSwipeRight();
         }
+        
         Animated.parallel([
             Animated.timing(position, {
                 toValue: x,
@@ -128,22 +140,61 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
 
 
     return (
-        data.length > currIndex ? 
-            <Animated.View style={[styles.cardContainer, cardStyles]} {...panResponder.panHandlers}>
+        <View style={styles.deckContainer}>
+    
+        {data.length > currIndex ? 
+            <Animated.View style={[cardStyles, {width: SCREEN_WIDTH}]} {...panResponder.panHandlers}>
                 <Animated.View style={[styles.cardContainer, cardStylesA]}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
                 <Animated.View style={[styles.cardContainer, cardStylesB]}>{renderCard(data[currIndex], "BACK")}</Animated.View>
-            </Animated.View> : <Text>No more cards</Text>
+            </Animated.View> : <Text>No more cards</Text>}
+  
+        <View style={styles.buttonsSection}>
+            <TouchableOpacity onPress={() => onSwipe(LEFT_SWIPE)}><View style={styles.button}><IconCross size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => onSwipe(RIGHT_SWIPE)}><View style={styles.button}><IconTick size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
+        </View>
+        </View>
 )};
 
 const styles = StyleSheet.create({
+    deckContainer: {
+        alignItems: 'center', 
+        width: SCREEN_WIDTH, 
+        flexGrow: 4, 
+        justifyContent: 'space-between'
+    },
+      cartText: {
+        color: '#dadada',
+        fontSize: 20,
+        textAlign: 'center'
+      },
     cardContainer: {
       position: "absolute",
-      flex: 1,
       top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-    } 
+      backgroundColor: '#263859',
+      borderRadius: 20,
+      width: SCREEN_WIDTH-40,
+      height: SCREEN_HEIGHT/3,
+      justifyContent: 'center',
+      alignItems: 'center',
+      alignSelf: 'center',
+
+    },
+    buttonsSection: {
+        flexDirection: 'row',
+        width: SCREEN_WIDTH,
+        justifyContent: 'space-evenly',
+        position: 'absolute',
+        bottom: 0,
+    },
+    button: {
+        backgroundColor: '#fff', 
+        padding: 20, 
+        borderRadius: '50%', 
+        shadowColor: '#414141', 
+        shadowOffset: {width: 2, height: 5}, 
+        shadowOpacity: 1, 
+        shadowRadius: 3
+    }
   })
 
 export default Deck;
