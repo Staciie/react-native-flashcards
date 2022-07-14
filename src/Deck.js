@@ -9,12 +9,17 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(0)).current;
+    const sideOpacity = useRef(new Animated.Value(1)).current;
+
+    const side = 0;
     const [currIndex, setCurrIndex] = useState(0);
 
-    const sideOpacity = position.interpolate({
-        inputRange: [-100, 0, 100],
-        outputRange: [.9, 1, .9],
-    })
+    const cardStyle = {
+        opacity: sideOpacity,
+        transform: [{
+            translateX: position
+        }]
+    }
 
     const onSwipe = (direction) => {
         let x = 0;
@@ -23,13 +28,25 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
         } else if (direction === RIGHT_SWIPE) {
           x = SCREEN_WIDTH*2;
         }
-        Animated.timing(position, {
-            toValue: x,
-            duration: 250,
-            useNativeDriver: true
-        }).start(() => {
+        Animated.parallel([
+            Animated.timing(position, {
+                toValue: x,
+                duration: 250,
+                useNativeDriver: true
+            }),
+            Animated.timing(sideOpacity, {
+                toValue: 0,
+                duration: 250,
+                useNativeDriver: true
+            })
+        ]).start(() => {
             position.setValue(0); 
-            setCurrIndex(prevIndex => prevIndex +1 );
+            setCurrIndex(prevIndex => prevIndex +1);
+            Animated.timing(sideOpacity, {
+                toValue: 1,
+                duration: 100,
+                useNativeDriver: true
+            }).start();   
         });
       }
 
@@ -59,7 +76,7 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
 
     return (
         data.length > currIndex ? 
-            <Animated.View style={[styles.cardContainer, {opacity: sideOpacity, transform: [{translateX: position}]}]} {...panResponder.panHandlers}>
+            <Animated.View style={[styles.cardContainer, {...cardStyle}]} {...panResponder.panHandlers}>
                 <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
                 <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "BACK")}</Animated.View>
             </Animated.View> : <Text>No more cards</Text>
