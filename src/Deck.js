@@ -7,10 +7,14 @@ const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
-    
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(0)).current;
     const [currIndex, setCurrIndex] = useState(0);
+
+    const sideOpacity = position.interpolate({
+        inputRange: [-100, 0, 100],
+        outputRange: [.9, 1, .9],
+    })
 
     const onSwipe = (direction) => {
         let x = 0;
@@ -55,7 +59,7 @@ const Deck = ({data, renderCard, renderEmptyList, onSwipeLeft, onSwipeRight}) =>
 
     return (
         data.length > currIndex ? 
-            <Animated.View style={[styles.cardContainer, {transform: [{translateX: position}]}]} {...panResponder.panHandlers}>
+            <Animated.View style={[styles.cardContainer, {opacity: sideOpacity, transform: [{translateX: position}]}]} {...panResponder.panHandlers}>
                 <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
                 <Animated.View style={styles.cardContainer}>{renderCard(data[currIndex], "BACK")}</Animated.View>
             </Animated.View> : <Text>No more cards</Text>
