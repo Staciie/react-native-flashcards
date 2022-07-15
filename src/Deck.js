@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { IconCross, IconTick } from './svg';
 
 const LEFT_SWIPE = 'Left';
@@ -7,7 +7,7 @@ const RIGHT_SWIPE = 'Right';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
+const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) => {
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(50)).current;
     const sideOpacity = useRef(new Animated.Value(1)).current;
@@ -17,9 +17,16 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
 
     const renderCard = (itemData, side) => {
         return (
-          <View>
-            <Text style={styles.cartText}>{side === "FRONT" ? itemData.term : itemData.definition}</Text>
-          </View>
+            side === "FRONT" ? (
+            <View style={styles.cardContainer}>
+                <Text style={[styles.cardText, {textAlign: 'center'}]}>{itemData.term}</Text>
+            </View>
+            ) : (
+                <View style={[styles.cardContainer, {flexDirection: 'row'}]}>
+                    <Image source={{uri: itemData.uri}} resizeMode="contain" style={{width: (SCREEN_WIDTH / 3), height: (SCREEN_HEIGHT/6)} } />
+                    <Text style={[styles.cardText, {flex: 1, flexWrap: 'wrap', marginLeft: 20}]}>{itemData.definition}</Text>
+                </View>
+            )
         )
       }
     
@@ -144,14 +151,13 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight}) => {
     
         {data.length > currIndex ? 
             <Animated.View style={[cardStyles, {width: SCREEN_WIDTH}]} {...panResponder.panHandlers}>
-                <Animated.View style={[styles.cardContainer, cardStylesA]}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
-                <Animated.View style={[styles.cardContainer, cardStylesB]}>{renderCard(data[currIndex], "BACK")}</Animated.View>
-            </Animated.View> : <Text>No more cards</Text>}
-  
-        <View style={styles.buttonsSection}>
+                <Animated.View style={[cardStylesA]}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
+                <Animated.View style={[cardStylesB]}>{renderCard(data[currIndex], "BACK")}</Animated.View>
+            </Animated.View> : <TouchableOpacity onPress={() => {setCurrIndex(0); onSwipeEnd()}}><Text>No more cards</Text></TouchableOpacity>}
+              {data.length > currIndex && <View style={styles.buttonsSection}>
             <TouchableOpacity onPress={() => onSwipe(LEFT_SWIPE)}><View style={styles.button}><IconCross size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
             <TouchableOpacity onPress={() => onSwipe(RIGHT_SWIPE)}><View style={styles.button}><IconTick size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
-        </View>
+        </View>}
         </View>
 )};
 
@@ -162,10 +168,9 @@ const styles = StyleSheet.create({
         flexGrow: 4, 
         justifyContent: 'space-between'
     },
-      cartText: {
+      cardText: {
         color: '#dadada',
         fontSize: 20,
-        textAlign: 'center'
       },
     cardContainer: {
       position: "absolute",
@@ -177,6 +182,7 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
       alignSelf: 'center',
+      paddingHorizontal: 20,
 
     },
     buttonsSection: {
@@ -189,11 +195,15 @@ const styles = StyleSheet.create({
     button: {
         backgroundColor: '#fff', 
         padding: 20, 
-        borderRadius: '50%', 
+        borderRadius: 50, 
         shadowColor: '#414141', 
         shadowOffset: {width: 2, height: 5}, 
         shadowOpacity: 1, 
         shadowRadius: 3
+    },
+    image: {
+        width: 50,
+        height: 50
     }
   })
 

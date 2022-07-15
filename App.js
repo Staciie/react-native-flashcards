@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { StyleSheet, Text, View, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, Dimensions, Image } from 'react-native';
 import { WORDS_GROUP } from './src/data';
 import Deck from './src/Deck';
 import { SquareIcon } from './src/svg';
@@ -12,6 +12,7 @@ const NEW = 'rgba(116,130,143,.6)';
 const KNOWN = 'rgba(65,146,75,.6)';
 
 export default function App() {
+  const [progress, setProgress] = useState([]);
 
   const onSwipeLeft = () => {
     setProgress(prev => [...prev, NEW])
@@ -21,14 +22,15 @@ export default function App() {
     setProgress(prev => [...prev, KNOWN])
   }
 
-  const [progress, setProgress] = useState([]);
-
+  const onSwipeEnd = () => {
+    setProgress([])
+  }
   
 
   return (
     <View style={styles.container}>
-      <View style={styles.progressSection}>{progress?.map(item => <Text><SquareIcon color={item} />{' '}</Text>)}</View>
-      <Deck data={WORDS_GROUP} renderEmptyList={null} onSwipeLeft={onSwipeLeft} onSwipeRight={onSwipeRight} />
+      <View style={styles.progressSection}>{progress?.map((item, index)=><View style={styles.progressIcon}><SquareIcon color={item} /></View>)}</View>
+      <Deck data={WORDS_GROUP} renderEmptyList={null} onSwipeLeft={onSwipeLeft} onSwipeRight={onSwipeRight} onSwipeEnd={onSwipeEnd}/>
     </View>
   );
 }
@@ -50,6 +52,13 @@ const styles = StyleSheet.create({
   progressSection: {
     flexGrow: 1,
     flexDirection: 'row',
-    paddingTop: 20,
+    padding: 20,
+    paddingBottom: 0,
+    width: SCREEN_WIDTH,
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  },
+  progressIcon: {
+    margin: 1
   }
 })
