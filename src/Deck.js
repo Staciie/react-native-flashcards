@@ -14,11 +14,10 @@ const Deck = (props) => {
         data, 
         frontCard, 
         backCard, 
-        renderEmptyList, 
         onSwipeLeft, 
         onSwipeRight, 
         onSwipeEnd, 
-        // showButtons, 
+        showButtons, 
         leftButton, 
         rightButton, 
         buttonsSectionStyle, 
@@ -31,7 +30,7 @@ const Deck = (props) => {
 
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(50)).current;
-    const sideOpacity = useRef(new Animated.Value(1)).current;
+    const sideOpacityA = useRef(new Animated.Value(2)).current;
 
     const showCards = data.length > currIndex;
     
@@ -47,14 +46,19 @@ const Deck = (props) => {
         extrapolate: "clamp"
       });
 
+      const sideOpacityB = sideOpacityA.interpolate({
+        inputRange: [0, 1, 2],
+        outputRange: [0, 0, 1]
+      })
+
     const cardStyles = {
-        opacity: sideOpacity,
         transform: [{
             translateX: position
         }]
     };
 
     const cardStylesA = {
+        opacity: sideOpacityA,
         transform: [{
             rotateY: cardRotationA
         }
@@ -63,6 +67,7 @@ const Deck = (props) => {
     }
 
     const cardStylesB = {
+        opacity: sideOpacityB,
         transform: [{
             rotateY: cardRotationB
         }
@@ -92,15 +97,15 @@ const Deck = (props) => {
                 duration: 250,
                 useNativeDriver: true
             }),
-            Animated.timing(sideOpacity, {
+            Animated.timing(sideOpacityA, {
                 toValue: 0,
                 duration: 250,
                 useNativeDriver: true
             })
         ]).start(() => {
             resetCardState();
-            Animated.timing(sideOpacity, {
-                toValue: 1,
+            Animated.timing(sideOpacityA, {
+                toValue: 2,
                 duration: 100,
                 useNativeDriver: true
             }).start();   

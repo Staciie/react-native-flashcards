@@ -62,7 +62,6 @@ export default function App() {
           data={WORDS_GROUP} 
           backCard={backCardSide} 
           frontCard={frontCardSide} 
-          renderEmptyList={null} 
           onSwipeLeft={onSwipeLeft} 
           onSwipeRight={onSwipeRight} 
           onSwipeEnd={onSwipeEnd}
@@ -105,8 +104,7 @@ const styles = StyleSheet.create({
     shadowColor: '#414141', 
     shadowOffset: {width: 2, height: 5}, 
     shadowOpacity: 1, 
-    shadowRadius: 3,
-    elevation: 1
+    shadowRadius: 3
   },
   buttonsSectionStyle: {
     flexDirection: 'row',
