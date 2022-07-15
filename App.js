@@ -33,8 +33,8 @@ export default function App() {
     <Card itemData={data} side={BACK_SIDE} />
   )
 
-  const progressItem = (color) => (
-    <View style={styles.progressIcon}>
+  const progressItem = (color, i) => (
+    <View key={i} style={styles.progressIcon}>
       <SquareIcon color={color} />
     </View>
   )
@@ -57,7 +57,7 @@ export default function App() {
   
   return (
     <View style={styles.container}>
-      <View style={styles.progressSection}>{progress.map((item)=>progressItem(item))}</View>
+      <View style={styles.progressSection}>{progress.map((item, index)=>progressItem(item, index))}</View>
       <Deck 
           data={WORDS_GROUP} 
           backCard={backCardSide} 
