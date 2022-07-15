@@ -1,5 +1,7 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View, Animated, PanResponder, TouchableWithoutFeedback, Easing, Dimensions, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import Card from './Card';
+import { FRONT_SIDE, BACK_SIDE } from './constants';
 import { IconCross, IconTick } from './svg';
 
 const LEFT_SWIPE = 'Left';
@@ -7,28 +9,31 @@ const RIGHT_SWIPE = 'Right';
 const SCREEN_WIDTH = Dimensions.get('screen').width;
 const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
-const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) => {
+const Deck = (props) => {
+    const {
+        data, 
+        frontCard, 
+        backCard, 
+        renderEmptyList, 
+        onSwipeLeft, 
+        onSwipeRight, 
+        onSwipeEnd, 
+        // showButtons, 
+        leftButton, 
+        rightButton, 
+        buttonsSectionStyle, 
+        containerStyle, 
+        noCardsLeft
+    } = props;
+
+    const [side, setSide] = useState(0);
+    const [currIndex, setCurrIndex] = useState(0);
+
     const position = useRef(new Animated.Value(0)).current;
     const rotation = useRef(new Animated.Value(50)).current;
     const sideOpacity = useRef(new Animated.Value(1)).current;
-    const [side, setSide] = useState(0);
 
-    const [currIndex, setCurrIndex] = useState(0);
-
-    const renderCard = (itemData, side) => {
-        return (
-            side === "FRONT" ? (
-            <View style={styles.cardContainer}>
-                <Text style={[styles.cardText, {textAlign: 'center'}]}>{itemData.term}</Text>
-            </View>
-            ) : (
-                <View style={[styles.cardContainer, {flexDirection: 'row'}]}>
-                    <Image source={{uri: itemData.uri}} resizeMode="contain" style={{width: (SCREEN_WIDTH / 3), height: (SCREEN_HEIGHT/6)} } />
-                    <Text style={[styles.cardText, {flex: 1, flexWrap: 'wrap', marginLeft: 20}]}>{itemData.definition}</Text>
-                </View>
-            )
-        )
-      }
+    const showCards = data.length > currIndex;
     
     const cardRotationA = rotation.interpolate({
         inputRange: [50, 100],
@@ -67,7 +72,7 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) =>
 
     const resetCardState = () => {
         position.setValue(0); 
-        setCurrIndex(prevIndex => prevIndex +1);
+        setCurrIndex(prevIndex => prevIndex + 1);
         setSide(0);
         rotation.setValue(50);
     };
@@ -75,13 +80,12 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) =>
     const onSwipe = (direction) => {
         let x = 0;
         if (direction === LEFT_SWIPE) {
-          x = -SCREEN_WIDTH*2;
           onSwipeLeft();
+          x = -SCREEN_WIDTH * 2;
         } else if (direction === RIGHT_SWIPE) {
-          x = SCREEN_WIDTH*2;
           onSwipeRight();
+          x = SCREEN_WIDTH * 2;
         }
-        
         Animated.parallel([
             Animated.timing(position, {
                 toValue: x,
@@ -131,9 +135,9 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) =>
                 if (gesture.dx === 0 && gesture.dy === 0) {
                     flip();
                 } else if (gesture.dx > 100) {
-                    onSwipe(RIGHT_SWIPE)
+                    onSwipe(RIGHT_SWIPE);
                 } else if (gesture.dx < -100) {
-                    onSwipe(LEFT_SWIPE)
+                    onSwipe(LEFT_SWIPE);
                 } else {
                     Animated.timing(position, {
                         toValue: 0,
@@ -145,29 +149,55 @@ const Deck = ({data, renderEmptyList, onSwipeLeft, onSwipeRight, onSwipeEnd}) =>
         }), [side]
     );
 
+    const crossButton = () => (
+        <TouchableOpacity onPress={() => onSwipe(LEFT_SWIPE)}>
+            <View style={styles.button}>
+                <IconCross size={30} color="#2d248a" />
+            </View>
+        </TouchableOpacity>
+    );
+
+    const tickButton = () => (
+        <TouchableOpacity onPress={() => onSwipe(RIGHT_SWIPE)}>
+            <View style={styles.button}>
+                <IconTick size={30} color="#2d248a" />
+            </View>
+        </TouchableOpacity>
+    );
+
+    const onResetList = () => {
+        setCurrIndex(0); 
+        onSwipeEnd();
+    }
 
     return (
-        <View style={styles.deckContainer}>
-    
-        {data.length > currIndex ? 
-            <Animated.View style={[cardStyles, {width: SCREEN_WIDTH}]} {...panResponder.panHandlers}>
-                <Animated.View style={[cardStylesA]}>{renderCard(data[currIndex], "FRONT")}</Animated.View>
-                <Animated.View style={[cardStylesB]}>{renderCard(data[currIndex], "BACK")}</Animated.View>
-            </Animated.View> : <TouchableOpacity onPress={() => {setCurrIndex(0); onSwipeEnd()}}><Text>No more cards</Text></TouchableOpacity>}
-              {data.length > currIndex && <View style={styles.buttonsSection}>
-            <TouchableOpacity onPress={() => onSwipe(LEFT_SWIPE)}><View style={styles.button}><IconCross size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
-            <TouchableOpacity onPress={() => onSwipe(RIGHT_SWIPE)}><View style={styles.button}><IconTick size={30} color="#2d248a" /></View><Text></Text></TouchableOpacity>
-        </View>}
+        <View style={containerStyle}>
+        {showCards ? (
+            <Animated.View style={cardStyles} {...panResponder.panHandlers}>
+                <Animated.View style={[cardStylesA, {position: 'absolute'}]}>{frontCard(data[currIndex])}</Animated.View>
+                <Animated.View style={cardStylesB}>{backCard(data[currIndex])}</Animated.View>
+            </Animated.View> ) : (
+            <TouchableOpacity onPress={onResetList}>{noCardsLeft()}</TouchableOpacity>
+        )}
+        
+        {showCards && (
+            <View style={buttonsSectionStyle}>
+                {leftButton && 
+                    <TouchableOpacity onPress={() => onSwipe(LEFT_SWIPE)}>
+                        {leftButton()}
+                    </TouchableOpacity>
+                }
+                {rightButton && 
+                    <TouchableOpacity onPress={() => onSwipe(RIGHT_SWIPE)}>
+                        {rightButton()}
+                    </TouchableOpacity>
+                }
+            </View>
+        )}
         </View>
-)};
+    )};
 
 const styles = StyleSheet.create({
-    deckContainer: {
-        alignItems: 'center', 
-        width: SCREEN_WIDTH, 
-        flexGrow: 4, 
-        justifyContent: 'space-between'
-    },
       cardText: {
         color: '#dadada',
         fontSize: 20,
@@ -189,7 +219,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         width: SCREEN_WIDTH,
         justifyContent: 'space-evenly',
-        position: 'absolute',
         bottom: 0,
     },
     button: {
